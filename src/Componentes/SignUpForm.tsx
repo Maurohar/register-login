@@ -3,93 +3,86 @@ import { motion } from 'framer-motion';
 import Input from './Input.tsx';  
 import Button from './Button.tsx';
 
+interface FormData {
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+interface Errors {
+  username?: string;
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+  general?: string;
+}
+
 const SignUpForm = () => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     username: '',
     email: '',
     password: '',
     confirmPassword: '',
   });
 
-  const [errors, setErrors] = useState<any>({});
+  const [errors, setErrors] = useState<Errors>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   // Manejador para cambios en el input
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    console.log(`Input changed: ${name} = ${value}`);
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   // Validación de los campos
-  const validateForm = () => {
-    console.log("Validando formulario...");
-    const newErrors: { [key: string]: string } = {};
+  const validateForm = (): boolean => {
+    const newErrors: Errors = {};
     if (!formData.username) newErrors.username = 'El nombre de usuario es requerido';
     if (!formData.email) newErrors.email = 'El correo electrónico es requerido';
     else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'El correo electrónico no es válido';
     if (!formData.password) newErrors.password = 'La contraseña es requerida';
     else if (formData.password.length < 6) newErrors.password = 'La contraseña debe tener al menos 6 caracteres';
     if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Las contraseñas no coinciden';
-    
-    setErrors(newErrors);
-    console.log("Errores después de la validación:", newErrors);
 
+    setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   // Manejo del envío del formulario
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Formulario enviado");
 
     if (validateForm()) {
       setIsLoading(true);
-      console.log("Formulario válido, preparando datos para enviar...");
 
-      // Datos del formulario a enviar
       const newUser = {
         username: formData.username,
         email: formData.email,
-        password: formData.password,
-        confirmPassword: formData.confirmPassword,
+        password: formData.password, // Solo enviamos la contraseña
       };
-      console.log("Datos a enviar:", newUser);
 
       try {
-        // Enviar solicitud POST al backend para crear el usuario
-        const response = await fetch('http://localhost:7000/api/users', {
+        const response = await fetch('http://localhost:7000/api/users', {  
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newUser),
         });
 
-        console.log("Respuesta recibida:", response);
-
         const data = await response.json();
-        console.log("Datos recibidos del servidor:", data);
 
         if (response.ok) {
-          // Si el usuario fue creado exitosamente, muestra un mensaje
           setIsLoading(false);
           setIsSubmitted(true);
-          console.log("Usuario creado exitosamente");
         } else {
-          // Si hubo un error, muestra el mensaje de error
           setIsLoading(false);
           setErrors({ general: data.message });
-          console.error("Error al crear el usuario:", data.message);
         }
       } catch (error) {
-        console.error("Error al registrar usuario:", error);
         setIsLoading(false);
-        setErrors({ general: "Hubo un error al procesar la solicitud." });
+        setErrors({ general: 'Hubo un error al procesar la solicitud.' });
       }
-    } else {
-      console.log("Formulario no válido, errores:", errors);
     }
   };
 
