@@ -1,12 +1,14 @@
 import express from "express";
-import userController from "../Controller/userController.js"; // Importar el controlador de usuarios
+import userController from "../Controller/userController.js";
+import mailerService from "../Services/mailerService.js"; // Importar el controlador de usuarios
 
 const router = express.Router();
 
-// Ruta para obtener todos los usuarios
+// Ruta GET para obtener todos los usuarios
 router.get("/api/users", userController.getUsers);
+router.get("/auth/verify-email", mailerService.sendVerificationEmail);
 
-// Ruta para crear un nuevo usuario
+// Ruta POST para crear un nuevo usuarios.
 router.post("/api/users", userController.createUser);
 
-export default router; // Exporta el enrutador
+export default router; // Exporta de forma global el enrutador.
